@@ -11,36 +11,56 @@ app.use(express.static('public'))
 
 app.set('view engine', 'ejs')
 
-let date = new Date()
-
 // your first API endpoint...
 app.get('/', function (req, res) {
   const date = new Date()
   res.render('index', {
-    date: `${date.getUTCFullYear()} - ${
-      date.getUTCMonth() + 1
-    } - ${date.getUTCDate()}`,
-    dateURL: `${date.getUTCFullYear().toString()}-${(
-      date.getUTCMonth() + 1
-    ).toString()}-${date.getUTCDate().toString()}`,
+    date: `${date.getUTCFullYear()}-${
+      date.getUTCMonth() + 1 < 10
+        ? '0' + (date.getUTCMonth() + 1).toString()
+        : date.getUTCMonth() + 1
+    }-${date.getUTCDate() < 10 ? '0' + date.getUTCDate() : date.getUTCDate()}`,
     dateTime: date.getTime(),
     dateAll: date.toUTCString(),
   })
 })
 
-app.get(`/api/:time`, (req, res) => {
-  let time = req.params.time
-  if (time.startsWith('2')) {
+app.get('/api', (req, res) => {
+  res.json({
+    unix: new Date().getTime(),
+    utc: new Date().toUTCString(),
+  })
+})
+
+app.get(`/api/:data_string`, (req, res) => {
+  const date_string = req.params.data_string
+  const fixDate = date_string
+    .split('-')
+    .map((value) => {
+      if (value.length === 1) {
+        return '0' + value
+      }
+      return value
+    })
+    .join('-')
+
+    
+  if (/\d{5,}/.test(date_string)) {
     res.json({
-      unix: new Date().getTime(),
-      utc: new Date().toUTCString(),
+      unix: new Date(Number(fixDate)).getTime(),
+      utc: new Date(Number(fixDate)).toUTCString(),
+    })
+  } else if (new Date(date_string).toString() === 'Invalid Date') {
+    res.json({
+      error: 'Invalid Date',
     })
   } else {
     res.json({
-      unix: Number(time),
-      utc: date.toUTCString(),
+      unix: new Date(fixDate).getTime(),
+      utc: new Date(fixDate).toUTCString(),
     })
   }
 })
 
-app.listen(5500)
+var port = process.env.PORT || 5500
+app.listen(port)
