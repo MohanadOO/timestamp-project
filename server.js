@@ -1,5 +1,6 @@
 var express = require('express')
 var app = express()
+const path = require('path')
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
@@ -7,14 +8,14 @@ var cors = require('cors')
 app.use(cors({ optionsSuccessStatus: 200 })) // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
-app.use(express.static('public'))
+app.use(express.static(__dirname + '/public'))
 
 app.set('view engine', 'ejs')
 
 // your first API endpoint...
 app.get('/', function (req, res) {
   const date = new Date()
-  res.render('index', {
+  res.render(path.join(__dirname + '/views/index.ejs'), {
     date: `${date.getUTCFullYear()}-${
       date.getUTCMonth() + 1 < 10
         ? '0' + (date.getUTCMonth() + 1).toString()
@@ -44,7 +45,6 @@ app.get(`/api/:data_string`, (req, res) => {
     })
     .join('-')
 
-    
   if (/\d{5,}/.test(date_string)) {
     res.json({
       unix: new Date(Number(fixDate)).getTime(),
